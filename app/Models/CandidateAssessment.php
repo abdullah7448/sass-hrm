@@ -9,10 +9,9 @@ class CandidateAssessment extends Model
 {
     use HasFactory;
 
-    // Mass assignment error বন্ধ করার জন্য
-    protected $guarded = [];
+    protected $fillable = ['candidate_id', 'answers'];
 
-    // রিলেশনশিপ (Candidate এর সাথে)
+    // রিলেশন: একটি Assessment একজন ক্যান্ডিডেটের হয়
     public function candidate()
     {
         return $this->belongsTo(Candidate::class);

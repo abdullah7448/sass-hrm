@@ -8,6 +8,20 @@ use app\models\CandidateAssessment;
 class Candidate extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'company_id', 
+        'name', 
+        'email', 
+        'phone', 
+        'position', 
+        'iq_score', 
+        'department_score', 
+        'resume_path', 
+        'nid_path', 
+        'certificate_path', 
+        'status'
+    ];
     
     protected $guarded = [];
 
@@ -19,7 +33,15 @@ class Candidate extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function assessment() {
-        return $this->hasOne(CandidateAssessment::class);
+    // public function assessment() 
+    // {
+    //     // এখানে \App\Models\ যুক্ত করা হয়েছে
+    //     return $this->hasOne(\App\Models\CandidateAssessment::class);
+    // }
+
+    // এই রিলেশনশিপটি অ্যাড করুন
+    public function assessment()
+    {
+        return $this->hasOne(\App\Models\CandidateAssessment::class, 'candidate_id');
     }
 }

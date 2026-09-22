@@ -1,65 +1,66 @@
 <template>
-    <div class="min-h-screen bg-gray-100 py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-        <div class="max-w-3xl w-full">
+    <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
             
-            <!-- Header Section -->
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Upload Your Documents</h2>
-                <p class="text-lg text-gray-600 max-w-xl mx-auto">
-                    We need a few documents to verify your profile. Please upload your updated CV, NID, and academic certificate below.
-                </p>
+            <div class="bg-blue-600 px-6 py-4">
+                <h2 class="text-xl font-bold text-white">Phase 3: Documents Upload</h2>
+                <p class="text-blue-100 text-sm mt-1">Please upload your Resume, NID, and Certificate. (PDF, JPG, PNG)</p>
             </div>
+            
+            <form @submit.prevent="submitForm" class="p-6 space-y-6">
+                
+                <!-- Resume Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Resume / CV <span class="text-red-500">*</span></label>
+                    <input 
+                        type="file" 
+                        @input="form.resume = $event.target.files[0]" 
+                        accept=".pdf,.doc,.docx" 
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-md shadow-sm p-2" 
+                    />
+                    <div v-if="form.errors.resume" class="text-red-500 text-xs mt-1">{{ form.errors.resume }}</div>
+                </div>
 
-            <!-- Upload Form Card -->
-            <div class="bg-white shadow-2xl rounded-2xl p-8 sm:p-12">
-                <form @submit.prevent="submitDocs" class="space-y-10">
-                    
-                    <!-- CV Upload Box -->
-                    <div>
-                        <label class="block text-lg font-bold text-gray-800 mb-3">1. Resume / CV <span class="text-sm font-normal text-gray-500">(PDF, DOCX)</span></label>
-                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-blue-500 hover:bg-blue-50 transition-all bg-gray-50 cursor-pointer relative">
-                            <input type="file" @change="e => form.cv = e.target.files[0]" accept=".pdf,.doc,.docx" required 
-                                class="block w-full text-base text-gray-700 
-                                file:mr-6 file:py-3 file:px-6 file:rounded-lg file:border-0 
-                                file:text-sm file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
-                        </div>
-                        <p v-if="form.errors.cv" class="text-red-500 text-sm mt-2 font-medium">{{ form.errors.cv }}</p>
-                    </div>
+                <!-- NID Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">National ID (NID) / Passport <span class="text-red-500">*</span></label>
+                    <input 
+                        type="file" 
+                        @input="form.nid = $event.target.files[0]" 
+                        accept=".pdf,.jpg,.jpeg,.png" 
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-md shadow-sm p-2" 
+                    />
+                    <div v-if="form.errors.nid" class="text-red-500 text-xs mt-1">{{ form.errors.nid }}</div>
+                </div>
 
-                    <!-- NID Upload Box -->
-                    <div>
-                        <label class="block text-lg font-bold text-gray-800 mb-3">2. NID Copy <span class="text-sm font-normal text-gray-500">(PDF, JPG, PNG)</span></label>
-                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-blue-500 hover:bg-blue-50 transition-all bg-gray-50 cursor-pointer relative">
-                            <input type="file" @change="e => form.nid = e.target.files[0]" accept=".pdf,.jpg,.jpeg,.png" required 
-                                class="block w-full text-base text-gray-700 
-                                file:mr-6 file:py-3 file:px-6 file:rounded-lg file:border-0 
-                                file:text-sm file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
-                        </div>
-                        <p v-if="form.errors.nid" class="text-red-500 text-sm mt-2 font-medium">{{ form.errors.nid }}</p>
-                    </div>
+                <!-- Certificate Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Latest Educational Certificate</label>
+                    <input 
+                        type="file" 
+                        @input="form.certificate = $event.target.files[0]" 
+                        accept=".pdf,.jpg,.jpeg,.png" 
+                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-md shadow-sm p-2" 
+                    />
+                    <div v-if="form.errors.certificate" class="text-red-500 text-xs mt-1">{{ form.errors.certificate }}</div>
+                </div>
 
-                    <!-- Certificate Upload Box -->
-                    <div>
-                        <label class="block text-lg font-bold text-gray-800 mb-3">3. Academic Certificate <span class="text-sm font-normal text-gray-500">(PDF, JPG, PNG)</span></label>
-                        <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:border-blue-500 hover:bg-blue-50 transition-all bg-gray-50 cursor-pointer relative">
-                            <input type="file" @change="e => form.certificate = e.target.files[0]" accept=".pdf,.jpg,.jpeg,.png" required 
-                                class="block w-full text-base text-gray-700 
-                                file:mr-6 file:py-3 file:px-6 file:rounded-lg file:border-0 
-                                file:text-sm file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
-                        </div>
-                        <p v-if="form.errors.certificate" class="text-red-500 text-sm mt-2 font-medium">{{ form.errors.certificate }}</p>
-                    </div>
+                <!-- Submit Button -->
+                <div class="mt-8 flex justify-end">
+                    <button 
+                        type="submit" 
+                        :disabled="form.processing" 
+                        class="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-md disabled:opacity-50 flex items-center"
+                    >
+                        <span v-if="form.processing">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Uploading...
+                        </span>
+                        <span v-else>Submit & Continue →</span>
+                    </button>
+                </div>
+            </form>
 
-                    <!-- Submit Button -->
-                    <div class="pt-6">
-                        <button type="submit" :disabled="form.processing" 
-                            class="w-full py-5 px-6 rounded-xl text-lg sm:text-xl font-bold text-white transition-all duration-200 shadow-md focus:outline-none focus:ring-4 focus:ring-opacity-50 bg-blue-600 hover:bg-blue-700 hover:shadow-xl hover:-translate-y-1 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed">
-                            <span v-if="form.processing">Uploading Documents (Please Wait)...</span>
-                            <span v-else>Upload & Continue to Rules →</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
     </div>
 </template>
@@ -67,15 +68,24 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 
-const form = useForm({ 
-    cv: null, 
-    nid: null, 
-    certificate: null 
+// ফর্মের ফিল্ডগুলো সেট করা হলো
+const form = useForm({
+    resume: null,
+    nid: null,
+    certificate: null,
 });
 
-const submitDocs = () => {
-    form.post(route('candidate.documents'), { 
-        forceFormData: true 
+const submitForm = () => {
+    // সঠিক রাউট (candidate.process_documents) এ POST রিকোয়েস্ট পাঠানো হচ্ছে
+    form.post(route('candidate.process_documents'), {
+        preserveScroll: true,
+        forceFormData: true, // Inertia তে ফাইল আপলোডের জন্য এটি বাধ্যতামূলক!
+        onSuccess: () => {
+            console.log('Documents uploaded successfully!');
+        },
+        onError: (errors) => {
+            console.error('Upload Error:', errors);
+        }
     });
 };
 </script>
