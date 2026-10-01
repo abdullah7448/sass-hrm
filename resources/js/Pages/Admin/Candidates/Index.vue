@@ -326,8 +326,13 @@ const getAnswersByCategory = (category) => {
     let parsedAnswers = typeof rawAnswers === 'string' ? JSON.parse(rawAnswers) : rawAnswers;
 
     const filteredQuestions = props.questions.filter(q => {
-        if (category === 'iq') return q.category === 'iq';
-        if (category === 'departmental') return q.category === 'departmental' && q.department === selectedCandidate.value.position;
+        if (category === 'iq') {
+            // 🟢 ফিক্স: প্রশ্নটি যদি গ্লোবাল হয় (is_global), অথবা 'All' হয়, অথবা ক্যান্ডিডেটের পজিশনের সাথে মিলে যায়!
+            return q.category === 'iq' && (q.is_global || q.department === 'All' || q.department === selectedCandidate.value.position);
+        }
+        if (category === 'departmental') {
+            return q.category === 'departmental' && q.department === selectedCandidate.value.position;
+        }
         return false;
     });
     

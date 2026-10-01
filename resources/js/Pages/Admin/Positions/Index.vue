@@ -244,9 +244,31 @@ const closeQuestionModal = () => {
 const addOption = () => qForm.options.push('');
 const removeOption = (index) => qForm.options.splice(index, 1);
 
+// const submitQuestion = () => {
+//     qForm.category = qTab.value;
+//     qForm.department = qTab.value === 'iq' ? 'All' : selectedPos.value.title;
+    
+//     if (qForm.type === 'text') {
+//         qForm.options = null;
+//     } else if (qForm.type === 'yes_no') {
+//         qForm.options = ['Yes', 'No'];
+//     } else {
+//         qForm.options = qForm.options.filter(opt => opt.trim() !== '');
+//     }
+
+//     qForm.post(route('questions.store'), {
+//         onSuccess: () => {
+//             qForm.question_text = '';
+//             qForm.type = 'mcq';
+//             qForm.options = ['', ''];
+//         },
+//         preserveScroll: true
+//     });
+// };
 const submitQuestion = () => {
     qForm.category = qTab.value;
-    qForm.department = qTab.value === 'iq' ? 'All' : selectedPos.value.title;
+    // 🟢 ফিক্স: IQ হোক বা Departmental, সব সময় নির্দিষ্ট পজিশনের নামেই সেভ হবে
+    qForm.department = selectedPos.value.title; 
     
     if (qForm.type === 'text') {
         qForm.options = null;
@@ -276,11 +298,24 @@ const parseJSON = (data) => {
     try { return typeof data === 'string' ? JSON.parse(data) : data; } catch (e) { return []; }
 };
 
+// const filteredQuestions = computed(() => {
+//     if (!props.questions) return [];
+//     return props.questions.filter(q => {
+//        // IQ ট্যাবে ক্লিক করলে কোম্পানির সব IQ + গ্লোবাল টেমপ্লেট দেখাবে
+//         if (qTab.value === 'iq') return q.category === 'iq';
+        
+//         // Departmental ট্যাবে ক্লিক করলে শুধু ওই পজিশনের প্রশ্ন দেখাবে
+//         return q.category === qTab.value && q.department === selectedPos.value.title;
+//     });
+// });
+
 const filteredQuestions = computed(() => {
     if (!props.questions) return [];
     return props.questions.filter(q => {
-       // IQ ট্যাবে ক্লিক করলে কোম্পানির সব IQ + গ্লোবাল টেমপ্লেট দেখাবে
-        if (qTab.value === 'iq') return q.category === 'iq';
+        if (qTab.value === 'iq') {
+            // 🟢 ফিক্স: শুধু গ্লোবাল IQ এবং এই নির্দিষ্ট পজিশনের কাস্টম IQ দেখাবে
+            return q.category === 'iq' && (q.is_global || q.department === 'All' || q.department === selectedPos.value.title);
+        }
         
         // Departmental ট্যাবে ক্লিক করলে শুধু ওই পজিশনের প্রশ্ন দেখাবে
         return q.category === qTab.value && q.department === selectedPos.value.title;

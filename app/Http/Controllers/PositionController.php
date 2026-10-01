@@ -11,26 +11,30 @@ class PositionController extends Controller
 {
     // পজিশন লিস্ট দেখানোর জন্য
   public function index()
-    {
-        $companyId = Auth::user()->company_id;
-        $company = \App\Models\Company::findOrFail($companyId);
-        
-        $positions = \App\Models\Position::where('company_id', $companyId)->latest()->get();
-        
-        // টেমপ্লেট এবং কোম্পানির নিজস্ব প্রশ্নগুলো Merge করা
-        $globalIQ = \App\Models\Question::getGlobalIQQuestions();
-        $companyQuestions = \App\Models\Question::where('company_id', $companyId)->get()->toArray();
-        $questions = array_merge($globalIQ, $companyQuestions);
+{
+    // ডাইনামিক কোম্পানি আইডি পিক করা (সুপার অ্যাডমিন ইমপারসনেশন সহ)
+    $isSuperAdmin = auth()->user()->hasRole('super_admin');
+    $companyId = ($isSuperAdmin && session()->has('active_company_id')) 
+                    ? session('active_company_id') 
+                    : auth()->user()->company_id;
 
-        $companySlug = str_replace(' ', '-', strtolower($company->name));
-        $applyUrl = url('/apply/' . $companySlug);
+    $company = \App\Models\Company::findOrFail($companyId);
+    
+    $positions = \App\Models\Position::where('company_id', $companyId)->latest()->get();
+    
+    $globalIQ = \App\Models\Question::getGlobalIQQuestions();
+    $companyQuestions = \App\Models\Question::where('company_id', $companyId)->get()->toArray();
+    $questions = array_merge($globalIQ, $companyQuestions);
 
-        return Inertia::render('Admin/Positions/Index', [
-            'positions' => $positions,
-            'questions' => $questions,
-            'applyUrl' => $applyUrl
-        ]);
-    }
+    $companySlug = str_replace(' ', '-', strtolower($company->name));
+    $applyUrl = url('/apply/' . $companySlug);
+
+    return Inertia::render('Admin/Positions/Index', [
+        'positions' => $positions,
+        'questions' => $questions,
+        'applyUrl' => $applyUrl
+    ]);
+}
 
     // নতুন পজিশন তৈরি করার জন্য
     public function store(Request $request)

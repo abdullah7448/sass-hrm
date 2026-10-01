@@ -13,6 +13,26 @@ const showingNavigationDropdown = ref(false);
 <template>
     <div>
         <div class="min-h-screen bg-gray-100">
+            
+            <!-- 🟢 Super Admin Impersonation Banner (Added here) -->
+            <div 
+                v-if="$page.props.active_company_id" 
+                class="bg-indigo-900 text-white text-center py-2.5 px-4 flex justify-center items-center gap-4 shadow-md z-50 relative"
+            >
+                <span class="font-semibold flex items-center gap-2 text-sm sm:text-base">
+                    ⚠️ <span class="hidden sm:inline">Super Admin Mode:</span> You are currently managing a client's workspace.
+                </span>
+                
+                <Link 
+                    :href="route('companies.exit')" 
+                    method="post" 
+                    as="button" 
+                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-full text-xs sm:text-sm font-bold shadow transition-transform hover:scale-105"
+                >
+                    Exit Workspace &rarr;
+                </Link>
+            </div>
+
             <nav
                 class="border-b border-gray-100 bg-white"
             >

@@ -27,6 +27,9 @@ class User extends Authenticatable
         'company_id',
         'phone',     
         'is_active', 
+        'resume_path',      // 🟢 যুক্ত করা হলো
+        'nid_path',         // 🟢 যুক্ত করা হলো
+        'certificate_path'  // 🟢 যুক্ত করা হলো
     ];
 
     public function company() {

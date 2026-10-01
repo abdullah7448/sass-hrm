@@ -80,20 +80,24 @@ const props = defineProps({
     departments: Array
 });
 
-// Form state (Fixed key names to match Laravel validation)
+// Form state
 const form = useForm({
     name: '',
     phone: '',
     email: '',
-    position: '', // Changed from applied_for to position
+    position: '', 
 });
 
 const submitForm = () => {
-    form.post(route('candidate.apply.process', { company_id: props.company.id }), {
+    // কোম্পানির নাম থেকে স্পেস মুছে স্লাগ তৈরি করা (যেমন: Buzz Blu -> buzzblu)
+    const companySlug = props.company.slug || props.company.name.toLowerCase().replace(/\s+/g, '');
+
+    // রাউটের নাম candidate.apply.process এবং প্যারামিটার company_name দেওয়া হলো
+    form.post(route('candidate.apply.process', { company_name: companySlug }), {
         preserveScroll: true,
         onError: (errors) => {
             console.error("Form Validation Failed:", errors);
         }
     });
 };
-</script>   
+</script>

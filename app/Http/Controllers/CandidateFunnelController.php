@@ -29,9 +29,6 @@ class CandidateFunnelController extends Controller
     }
 
     // ==========================================
-    // Helper: Redirect to Specific Company Apply Page if Session is Missing
-    // ==========================================
-   // ==========================================
     // Helper: Redirect to Specific Company Apply Page
     // ==========================================
     private function redirectToApplyPage()
@@ -47,11 +44,9 @@ class CandidateFunnelController extends Controller
     // ==========================================
     public function showRegister($company_name)
     {
-        // ইউআরএল থেকে হাইফেন (-) সরিয়ে স্পেস দিয়ে কোম্পানির নাম মেলানো হচ্ছে
         $company = \App\Models\Company::whereRaw('LOWER(name) = ?', [strtolower(str_replace('-', ' ', $company_name))])->firstOrFail();
         $company_id = $company->id;
 
-        // সেশনে slug সেভ করে রাখছি ফলব্যাকের জন্য
         session(['company_slug' => $company_name]);
         session(['company_id' => $company_id]);
 
@@ -80,7 +75,6 @@ class CandidateFunnelController extends Controller
             'position' => 'required|string',
         ]);
 
-        // ডাটাবেস থেকে কোম্পানি আইডি বের করা
         $company = \App\Models\Company::whereRaw('LOWER(name) = ?', [strtolower(str_replace('-', ' ', $company_name))])->firstOrFail();
         $company_id = $company->id;
 
@@ -108,30 +102,67 @@ class CandidateFunnelController extends Controller
 
         session(['candidate_id' => $candidate->id]);
 
+        // সোজাসুজি IQ টেস্টে যাবে, কোনো প্যারামিটার লাগবে না!
         return redirect()->route('candidate.iq'); 
     }
 
-    
-   // ==========================================
+    // ==========================================
     // STEP 2: IQ Test (Global + Company Specific)
     // ==========================================
+    // public function showIQ()
+    // {
+    //     $candidateId = session('candidate_id');
+    //     if (!$candidateId) return $this->redirectToApplyPage();
+
+    //     $candidate = \App\Models\Candidate::findOrFail($candidateId);
+
+    //     $globalIQ = \App\Models\Question::getGlobalIQQuestions();
+    //     $companyIQ = \App\Models\Question::where('company_id', $candidate->company_id)
+    //         ->where('category', 'iq')->get()->toArray();
+
+    //     $questions = array_merge($globalIQ, $companyIQ);
+
+    //     return Inertia::render('Funnel/Assessment', [
+    //         'questions' => $questions,
+    //         'step_title' => 'Phase 1: IQ Assessment',
+    //         'next_route' => route('candidate.process_iq')
+    //     ]);
+    // }
+
     public function showIQ()
     {
         $candidateId = session('candidate_id');
-        if (!$candidateId) return $this->redirectToApplyPage();
+        
+        // আপনার আগের লজিক অনুযায়ী রিডাইরেক্ট
+        if (!$candidateId) {
+            return redirect()->route('home')->with('error', 'Session expired. Please register again.');
+        }
 
-        $candidate = \App\Models\Candidate::findOrFail($candidateId);
+        $candidate = \App\Models\Candidate::find($candidateId);
+        if (!$candidate) {
+            return redirect()->route('home');
+        }
 
-        // ১. গ্লোবাল/টেমপ্লেট প্রশ্নগুলো নিয়ে আসা
+        $companyId = $candidate->company_id;
+        $position = $candidate->position;
+
+        // ১. গ্লোবাল IQ প্রশ্ন আনা
         $globalIQ = \App\Models\Question::getGlobalIQQuestions();
 
-        // ২. এই কোম্পানির নিজস্ব অ্যাড করা প্রশ্নগুলো নিয়ে আসা
-        $companyIQ = \App\Models\Question::where('company_id', $candidate->company_id)
-            ->where('category', 'iq')->get()->toArray();
+        // ২. কাস্টম IQ প্রশ্ন (যেগুলো শুধু ক্যান্ডিডেটের পজিশনের জন্য বা 'All' এর জন্য)
+        $companyQuestions = \App\Models\Question::where('company_id', $companyId)
+            ->where('category', 'iq')
+            ->where(function($query) use ($position) {
+                $query->where('department', $position)
+                      ->orWhere('department', 'All');
+            })
+            ->get()
+            ->toArray();
 
-        // ৩. দুটো একসাথে যুক্ত (Merge) করে ভিউতে পাঠানো
-        $questions = array_merge($globalIQ, $companyIQ);
+        // ৩. মার্জ করা
+        $questions = array_merge($globalIQ, $companyQuestions);
 
+        // 🟢 মূল ফিক্স: আপনার আগের ফাইলনেম (Funnel/Assessment) এবং Props গুলো ঠিক করে দেওয়া হলো
         return Inertia::render('Funnel/Assessment', [
             'questions' => $questions,
             'step_title' => 'Phase 1: IQ Assessment',
@@ -142,7 +173,7 @@ class CandidateFunnelController extends Controller
     public function processIQ(Request $request)
     {
         $this->saveAnswersToDB(session('candidate_id'), $request->answers);
-        return redirect()->route('candidate.departmental'); // IQ -> Departmental
+        return redirect()->route('candidate.departmental'); 
     }
 
     // ==========================================
@@ -169,7 +200,7 @@ class CandidateFunnelController extends Controller
     public function processDepartmental(Request $request)
     {
         $this->saveAnswersToDB(session('candidate_id'), $request->answers);
-        return redirect()->route('candidate.documents'); // Departmental -> Documents
+        return redirect()->route('candidate.documents'); 
     }
 
     // ==========================================
@@ -207,11 +238,11 @@ class CandidateFunnelController extends Controller
 
         $candidate->update($data);
 
-        return redirect()->route('candidate.rules'); // Documents -> Rules
+        return redirect()->route('candidate.rules'); 
     }
 
     // ==========================================
-    // STEP 5: Office Rules (Static Agreement Page)
+    // STEP 5: Office Rules
     // ==========================================
     public function showRules()
     {
@@ -223,7 +254,7 @@ class CandidateFunnelController extends Controller
 
     public function processRules(Request $request)
     {
-        return redirect()->route('candidate.success'); // Rules -> Success
+        return redirect()->route('candidate.success'); 
     }
 
     // ==========================================

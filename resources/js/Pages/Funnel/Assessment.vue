@@ -74,6 +74,7 @@
     </div>
 </template>
 
+
 <script setup>
 import { onMounted, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
@@ -106,12 +107,12 @@ const parseOptions = (options) => {
     }
 };
 
-// Dynamic Storage Key: Creates a unique key for IQ, Departmental, and Rules so they don't overwrite each other
+// Dynamic Storage Key
 const storageKey = computed(() => {
     return 'assessment_progress_' + (props.step_title ? props.step_title.replace(/\s+/g, '_').toLowerCase() : 'default');
 });
 
-// Load progress from Local Storage when page loads
+// Load progress
 onMounted(() => {
     const savedProgress = localStorage.getItem(storageKey.value);
     if (savedProgress) {
@@ -119,17 +120,16 @@ onMounted(() => {
     }
 });
 
-// Save progress to Local Storage on every input/change
+// Save progress
 const saveProgress = () => {
     localStorage.setItem(storageKey.value, JSON.stringify(form.answers));
 };
 
-// Submit Form via Inertia
+// Submit Form
 const submitAnswers = () => {
     form.post(props.next_route, {
         preserveScroll: true,
         onSuccess: () => {
-            // Clear only this specific step's storage after successful submission
             localStorage.removeItem(storageKey.value);
         }
     });

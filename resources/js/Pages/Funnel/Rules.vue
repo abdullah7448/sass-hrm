@@ -139,11 +139,8 @@ const form = useForm({
     }
 });
 
-// Rules.vue এর <script setup> অংশটি এমন হবে:
-
 const submitRules = () => {
     if (form.agreed) {
-        // 'candidate.rules' এর বদলে 'candidate.process_rules' হবে
         form.post(route('candidate.process_rules'), {
             preserveScroll: true
         });

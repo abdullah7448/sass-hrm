@@ -48,6 +48,14 @@
                                 <Link :href="route('companies.destroy', company.id)" method="delete" as="button" class="text-red-500 hover:text-red-700 text-sm font-semibold" preserve-scroll>
                                     Delete
                                 </Link>
+
+                                <!-- কোম্পানির অ্যাকশন বাটনের জায়গায় এটি যুক্ত করুন -->
+                                <Link 
+                                    :href="route('companies.manage', company.id)" 
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-bold transition-colors"
+                                >
+                                    Login As / Manage
+                                </Link>
                             </td>
                         </tr>
                         

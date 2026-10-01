@@ -68,7 +68,6 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 
-// ফর্মের ফিল্ডগুলো সেট করা হলো
 const form = useForm({
     resume: null,
     nid: null,
@@ -76,7 +75,6 @@ const form = useForm({
 });
 
 const submitForm = () => {
-    // সঠিক রাউট (candidate.process_documents) এ POST রিকোয়েস্ট পাঠানো হচ্ছে
     form.post(route('candidate.process_documents'), {
         preserveScroll: true,
         forceFormData: true, // Inertia তে ফাইল আপলোডের জন্য এটি বাধ্যতামূলক!

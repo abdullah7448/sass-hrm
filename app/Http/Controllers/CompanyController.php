@@ -92,4 +92,37 @@ class CompanyController extends Controller
 
         return redirect()->back()->with('success', 'Company deleted successfully!');
     }
+
+    // ==========================================
+    // Super Admin: Manage Specific Company
+    // ==========================================
+ // ==========================================
+// Super Admin: Manage Specific Company (Tenant Switching)
+// ==========================================
+public function manageCompany($id)
+{
+    // ১. চেক করা হচ্ছে ইউজার সুপার অ্যাডমিন কি না
+    if (auth()->user()->hasRole('super_admin')) {
+        
+        // ২. 🟢 এখানেই সেশনে active_company_id সেট হয়ে যাচ্ছে!
+        session(['active_company_id' => $id]);
+        
+        // ৩. ড্যাশবোর্ডে রিডাইরেক্ট করা হচ্ছে
+        return redirect()->route('dashboard'); 
+    }
+    
+    return redirect()->back()->with('error', 'Unauthorized access.');
+}
+
+    // ==========================================
+    // Super Admin: Exit Company Management
+    // ==========================================
+   // মেথড:
+public function exitManagement()
+{
+    if (session()->has('active_company_id')) {
+        session()->forget('active_company_id'); // সেশন থেকে মুছে ফেলা
+    }
+    return redirect()->route('companies.index');
+}
 }

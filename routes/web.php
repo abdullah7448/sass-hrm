@@ -37,22 +37,28 @@ Route::prefix('companies')->middleware(['auth', 'verified'])->name('companies.')
     Route::get('/', [CompanyController::class, 'index'])->name('index');
     Route::get('/create', [CompanyController::class, 'create'])->name('create');
     Route::post('/', [CompanyController::class, 'store'])->name('store');
+
+    // 🟢 Notun add kora holo: Tenant Switching Routes
+    Route::get('/{company}/manage', [CompanyController::class, 'manageCompany'])->name('manage');
+    Route::post('/exit-management', [CompanyController::class, 'exitManagement'])->name('exit');
     
     Route::get('/{company}/edit', [CompanyController::class, 'edit'])->name('edit');
     Route::put('/{company}', [CompanyController::class, 'update'])->name('update');
     Route::delete('/{company}', [CompanyController::class, 'destroy'])->name('destroy');
 });
 
-
+ 
 // ==========================================
 // 2. Company Admin Routes (HR Management)
 // ==========================================
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/applications', [CandidateController::class, 'index'])->name('applications.index');
     
-    // Employees রাউট
+   // Employee Management Routes
     Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'index'])->name('employees.index');
-    
+    Route::get('/employees/{id}', [\App\Http\Controllers\EmployeeController::class, 'show'])->name('employees.show'); // <--- এটি নতুন
+    Route::delete('/employees/{id}/terminate', [\App\Http\Controllers\EmployeeController::class, 'terminate'])->name('employees.terminate');
+
     // Approve রাউট
     Route::post('/applications/{candidate}/approve', [CandidateController::class, 'approve'])->name('applications.approve');
     // Status Update রাউট (নতুন অ্যাড করা হলো)
@@ -73,13 +79,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // 3. Candidate Funnel Routes (FIXED: Step-by-Step)
 // ==========================================
 
-// Step 1: Registration (Updated with company_name instead of ID)
-Route::get('/apply/{company_name}', [CandidateFunnelController::class, 'showRegister'])
-    ->name('candidate.apply.show');
-    
-Route::post('/apply/{company_name}', [CandidateFunnelController::class, 'processRegister'])
-    ->name('candidate.apply.process');
 
+// বাকি সব রাউট থেকে {company_name} সরিয়ে দেওয়া হলো (কারণ আমরা Session ব্যবহার করবো)
 // Step 2: IQ Test
 Route::get('/apply/iq', [CandidateFunnelController::class, 'showIQ'])->name('candidate.iq');
 Route::post('/apply/iq/process', [CandidateFunnelController::class, 'processIQ'])->name('candidate.process_iq');
@@ -99,10 +100,16 @@ Route::post('/apply/rules/process', [CandidateFunnelController::class, 'processR
 // Final Step: Success / Application Status
 Route::get('/apply/success', [CandidateFunnelController::class, 'success'])->name('candidate.success');
 
+
+
+// Step 1: Registration (শুধুমাত্র এখানে company_name থাকবে)
+Route::get('/apply/{company_name}', [CandidateFunnelController::class, 'showRegister'])->name('candidate.apply.show');
+Route::post('/apply/{company_name}', [CandidateFunnelController::class, 'processRegister'])->name('candidate.apply.process');
+
 // 🛠️ Test Route (সেশন রিসেট করার জন্য)
-Route::get('/apply-reset/{company_id}', function ($company_id) {
+Route::get('/apply-reset/{company_name}', function ($company_name) {
     session()->forget('candidate_id');
-    return redirect()->route('candidate.apply.show', ['company_id' => $company_id]);
+    return redirect()->route('candidate.apply.show', ['company_name' => $company_name]);
 });
 
 
@@ -116,3 +123,6 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+
+//https://my-chat.app.n8n.cloud/workflow/ZLSAcw9ul1aYDLy6/e7259f 

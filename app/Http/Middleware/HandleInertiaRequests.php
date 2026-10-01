@@ -41,6 +41,8 @@ class HandleInertiaRequests extends Middleware
                     'roles' => $request->user()->getRoleNames()->toArray(), 
                 ] : null,
             ],
+            // 🟢 শুধু এই লাইনটি নতুন অ্যাড করা হলো (Super Admin এর Tenant Switching এর জন্য)
+            'active_company_id' => session('active_company_id'),
         ]);
     }
 }
