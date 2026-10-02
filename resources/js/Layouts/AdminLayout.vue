@@ -34,7 +34,7 @@
                     <!-- =======================================
                          ১. Master Access (Super Admin) Menu 
                     ======================================== -->
-                    <template v-if="hasRole('Super Admin')">
+                    <template v-if="hasRole('super_admin') || hasRole('Super Admin')">
                         <li class="px-6 mb-2 mt-6"><div class="text-xs font-semibold text-gray-500 uppercase">Master Access</div></li>
                         
                         <!-- Companies -->
@@ -62,15 +62,15 @@
                         </li>
                     </template>
 
-                    <!-- =======================================
-                         ২. Company Admin Menu
+                   <!-- =======================================
+                        ২. Company Admin Menu
                     ======================================== -->
                     <template v-if="hasRole('Company Admin')">
                         <li class="px-6 mb-2 mt-6"><div class="text-xs font-semibold text-gray-500 uppercase">Recruitment</div></li>
                         
                         <!-- Applications Link -->
                         <li>
-                            <Link :href="route('applications.index')" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
+                            <Link :href="route('applications.index')" :class="{'bg-gray-800 text-white border-blue-500': route().current('applications.index')}" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
                                 <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span class="ml-3 text-sm font-medium">Job Applications</span>
                             </Link>
@@ -80,7 +80,7 @@
                         
                         <!-- Employees Link -->
                         <li>
-                            <Link :href="route('employees.index')" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
+                            <Link :href="route('employees.index')" :class="{'bg-gray-800 text-white border-blue-500': route().current('employees.index')}" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
                                 <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                                 <span class="ml-3 text-sm font-medium">Employees</span>
                             </Link>
@@ -88,30 +88,46 @@
 
                         <!-- Job Positions Link -->
                         <li>
-                            <Link :href="route('positions.index')" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
+                            <Link :href="route('positions.index')" :class="{'bg-gray-800 text-white border-blue-500': route().current('positions.index')}" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
                                 <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                                 <span class="ml-3 text-sm font-medium">Job Positions</span>
+                            </Link>
+                        </li>
+
+                        <!-- Daily Attendance Link -->
+                        <li>
+                            <Link :href="route('company.attendance.today')" :class="{'bg-gray-800 text-white border-blue-500': route().current('company.attendance.today')}" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
+                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span class="ml-3 text-sm font-medium">Daily Attendance</span>
+                            </Link>
+                        </li>
+
+                        <!-- Leave Requests Link (Admin View) -->
+                        <li>
+                            <Link :href="route('leaves.index')" :class="{'bg-gray-800 text-white border-blue-500': route().current('leaves.index')}" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
+                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span class="ml-3 text-sm font-medium">Leave Requests</span>
                             </Link>
                         </li>
                     </template>
 
                     <!-- =======================================
-                         ৩. Employee Menu (শুধু এমপ্লয়িরা দেখবে)
+                        ৩. Employee Menu (শুধু এমপ্লয়িরা দেখবে)
                     ======================================== -->
                     <template v-if="hasRole('Employee')">
                         <li class="px-6 mb-2 mt-6"><div class="text-xs font-semibold text-gray-500 uppercase">My Workspace</div></li>
-                        
-                        <!-- My Attendance -->
+                            
+                       <!-- My Attendance -->
                         <li>
-                            <Link href="#" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
+                            <Link :href="route('my-attendance')" :class="{'bg-gray-800 text-white border-blue-500': route().current('my-attendance')}" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
                                 <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span class="ml-3 text-sm font-medium">My Attendance</span>
                             </Link>
                         </li>
 
-                        <!-- Leave Requests -->
+                        <!-- Leave & Holidays (Employee View) -->
                         <li>
-                            <Link href="#" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
+                            <Link :href="route('leaves.index')" :class="{'bg-gray-800 text-white border-blue-500': route().current('leaves.index')}" class="relative flex flex-row items-center h-12 hover:bg-gray-800 text-gray-300 hover:text-white border-l-4 border-transparent hover:border-blue-500 pr-6 pl-4 transition-all">
                                 <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                 <span class="ml-3 text-sm font-medium">Leave & Holidays</span>
                             </Link>
@@ -129,14 +145,14 @@
                 </ul>
             </div>
             
-            <!-- User Profile & Logout -->
+            <!-- User Profile & Logout (🟢 FIXED: Added safe optional chaining) -->
             <div class="p-5 border-t border-gray-800 bg-gray-950">
                 <div class="flex items-center mb-4">
                     <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white uppercase shadow-lg">
-                        {{ $page.props.auth.user.name.charAt(0) }}
+                        {{ $page.props.auth?.user?.name?.charAt(0) || 'U' }}
                     </div>
                     <div class="ml-3 overflow-hidden">
-                        <p class="text-sm font-medium text-white truncate">{{ $page.props.auth.user.name }}</p>
+                        <p class="text-sm font-medium text-white truncate">{{ $page.props.auth?.user?.name || 'Guest User' }}</p>
                         <p class="text-xs text-gray-400 mt-1 truncate">{{ userRoleName }}</p>
                     </div>
                 </div>
@@ -178,16 +194,22 @@ import { ref, computed } from 'vue';
 const page = usePage();
 const sidebarOpen = ref(false); // Mobile sidebar toggle state
 
-// Role Checker (Case Insensitive)
 const hasRole = (roleName) => {
-    const roles = page.props.auth.user?.roles || [];
-    const normalizedRoles = Object.values(roles).map(r => r.toLowerCase());
-    return normalizedRoles.includes(roleName.toLowerCase());
+    const roles = page.props.auth?.user?.roles;
+    
+    // রোল না থাকলে সরাসরি false
+    if (!roles) return false;
+    
+    // ব্যাকএন্ড থেকে Object বা Array যেভাবেই আসুক, সেটাকে পিওর Array-তে কনভার্ট করা
+    const roleArray = Array.isArray(roles) ? roles : Object.values(roles);
+    
+    // কেস-ইনসেনসিটিভ চেক (যাতে 'super_admin' আর 'Super Admin' দুটোর জন্যই কাজ করে)
+    return roleArray.some(r => String(r).toLowerCase() === String(roleName).toLowerCase());
 };
 
-// Profile Role Name
+// Profile Role Name (🟢 FIXED: Added safe optional chaining)
 const userRoleName = computed(() => {
-    const roles = page.props.auth.user?.roles || [];
+    const roles = page.props.auth?.user?.roles || [];
     const roleArray = Object.values(roles);
     return roleArray.length > 0 ? roleArray[0] : 'User';
 });

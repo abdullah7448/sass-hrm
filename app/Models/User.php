@@ -29,7 +29,9 @@ class User extends Authenticatable
         'is_active', 
         'resume_path',      // 🟢 যুক্ত করা হলো
         'nid_path',         // 🟢 যুক্ত করা হলো
-        'certificate_path'  // 🟢 যুক্ত করা হলো
+        'certificate_path', 
+        'basic_salary',
+        'shift_type',
     ];
 
     public function company() {

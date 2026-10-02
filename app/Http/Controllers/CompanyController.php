@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Company;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth; // 🟢 Auth ফ্যাসাড ইমপোর্ট করা হলো
 
 class CompanyController extends Controller
 {
@@ -45,7 +46,7 @@ class CompanyController extends Controller
             'company_id' => $company->id,
             'name' => $request->name . ' Admin',
             'email' => $request->email,
-            'password' => bcrypt('password123'), // ডিফল্ট পাসওয়ার্ড
+            'password' => bcrypt('password123'), // ডিফল্ট পাসওয়ার্ড
             'is_active' => true,
         ]);
 
@@ -101,10 +102,13 @@ class CompanyController extends Controller
 // ==========================================
 public function manageCompany($id)
 {
+    /** @var \App\Models\User $user */
+    $user = Auth::user(); // 🟢 ডাবল কোলন এবং টাইপ হিন্টিং ব্যবহার করা হলো
+
     // ১. চেক করা হচ্ছে ইউজার সুপার অ্যাডমিন কি না
-    if (auth()->user()->hasRole('super_admin')) {
+    if ($user->hasRole('super_admin')) {
         
-        // ২. 🟢 এখানেই সেশনে active_company_id সেট হয়ে যাচ্ছে!
+        // ২. 🟢 এখানেই সেশনে active_company_id সেট হয়ে যাচ্ছে!
         session(['active_company_id' => $id]);
         
         // ৩. ড্যাশবোর্ডে রিডাইরেক্ট করা হচ্ছে

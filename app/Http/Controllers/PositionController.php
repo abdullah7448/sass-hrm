@@ -12,11 +12,14 @@ class PositionController extends Controller
     // পজিশন লিস্ট দেখানোর জন্য
   public function index()
 {
+    /** @var \App\Models\User $user */
+    $user = Auth::user(); // 🟢 ডাবল কোলন এবং টাইপ হিন্ট ব্যবহার করা হলো
+
     // ডাইনামিক কোম্পানি আইডি পিক করা (সুপার অ্যাডমিন ইমপারসনেশন সহ)
-    $isSuperAdmin = auth()->user()->hasRole('super_admin');
+    $isSuperAdmin = $user->hasRole('super_admin');
     $companyId = ($isSuperAdmin && session()->has('active_company_id')) 
                     ? session('active_company_id') 
-                    : auth()->user()->company_id;
+                    : $user->company_id;
 
     $company = \App\Models\Company::findOrFail($companyId);
     
@@ -43,8 +46,11 @@ class PositionController extends Controller
             'title' => 'required|string|max:255',
         ]);
 
+        /** @var \App\Models\User $user */
+        $user = Auth::user(); // 🟢 টাইপ হিন্ট ব্যবহার করা হলো
+
         Position::create([
-            'company_id' => Auth::user()->company_id,
+            'company_id' => $user->company_id,
             'title' => $request->title,
             'is_active' => true,
         ]);
@@ -55,8 +61,11 @@ class PositionController extends Controller
     // পজিশন Active/Inactive করার জন্য
     public function update(Request $request, Position $position)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user(); // 🟢 টাইপ হিন্ট ব্যবহার করা হলো
+
         // সিকিউরিটি চেক (অন্য কোম্পানির অ্যাডমিন যেন চেঞ্জ করতে না পারে)
-        if ($position->company_id !== Auth::user()->company_id) {
+        if ($position->company_id !== $user->company_id) {
             abort(403);
         }
 

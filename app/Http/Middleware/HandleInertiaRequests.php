@@ -29,20 +29,23 @@ class HandleInertiaRequests extends Middleware
      */
     
     
-    public function share(Request $request): array
-    {
-        return array_merge(parent::share($request), [
-            'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    // শেষে ->toArray() যুক্ত করতে হবে
-                    'roles' => $request->user()->getRoleNames()->toArray(), 
-                ] : null,
-            ],
-            // 🟢 শুধু এই লাইনটি নতুন অ্যাড করা হলো (Super Admin এর Tenant Switching এর জন্য)
-            'active_company_id' => session('active_company_id'),
-        ]);
-    }
+public function share(Request $request): array
+{
+    return [
+        ...parent::share($request),
+        'auth' => [
+            'user' => $request->user() ? [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'email' => $request->user()->email,
+                'company_id' => $request->user()->company_id,
+                // Spatie theke role pathanor exact rules
+                'roles' => $request->user()->getRoleNames(), 
+            ] : null,
+        ],
+        'active_company_id' => session('active_company_id'),
+    ];
 }
+}
+
+
