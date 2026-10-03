@@ -11,20 +11,21 @@ class LeaveController extends Controller
 {
     public function index()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         if (!$user) {
             return redirect()->route('login');
         }
 
-        // 🟢 Spatie রিলেশন থেকে সরাসরি রোলের নাম বের করা (কখনো ফেইল করবে না)
-        $userRole = $user->roles->pluck('name')->first();
+        // 🟢 সরাসরি Base Controller থেকে ডাইনামিক কোম্পানি আইডি নেওয়া হলো
+        $companyId = $this->getActiveCompanyId();
 
-        // ১. যদি ইউজার অ্যাডমিন বা সুপার অ্যাডমিন হয়
-        if ($userRole === 'Company Admin' || $userRole === 'Super Admin' || $userRole === 'Admin') {
+        // ১. যদি ইউজার অ্যাডমিন বা সুপার অ্যাডমিন হয় (Spatie এর hasAnyRole ব্যবহার করা হলো)
+        if ($user->hasAnyRole(['Company Admin', 'Super Admin', 'super_admin', 'Admin'])) {
             
             $leaves = Leave::with('user')
-                ->where('company_id', $user->company_id)
+                ->where('company_id', $companyId) // 🟢 ডাইনামিক কোম্পানি আইডি ব্যবহার
                 ->latest()
                 ->get();
 
@@ -33,7 +34,7 @@ class LeaveController extends Controller
             ]);
 
         } 
-        // ২. যদি সাধারণ এমপ্লয়ি হয় (অথবা রোল ম্যাচ না করলে ডিফল্ট এমপ্লয়ি ভিউ দেখাবে)
+        // ২. যদি সাধারণ এমপ্লয়ি হয় (এমপ্লয়ি শুধুমাত্র নিজের লিভ দেখবে)
         else {
             
             $leaves = Leave::where('user_id', $user->id)
@@ -55,10 +56,14 @@ class LeaveController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
+        /** @var \App\Models\User $user */
         $user = Auth::user();
+        
+        // 🟢 ডাইনামিক কোম্পানি আইডি
+        $companyId = $this->getActiveCompanyId(); 
 
         Leave::create([
-            'company_id' => $user->company_id,
+            'company_id' => $companyId,
             'user_id' => $user->id,
             'leave_type' => $request->leave_type,
             'start_date' => $request->start_date,
@@ -76,8 +81,11 @@ class LeaveController extends Controller
             'status' => 'required|in:approved,rejected',
         ]);
 
-        $admin = Auth::user();
-        $leave = Leave::where('company_id', $admin->company_id)->findOrFail($id);
+        // 🟢 ডাইনামিক কোম্পানি আইডি
+        $companyId = $this->getActiveCompanyId();
+
+        // 🟢 সিকিউরিটি চেক: অন্য কোম্পানির লিভ রিকোয়েস্ট যেন আপডেট করতে না পারে
+        $leave = Leave::where('company_id', $companyId)->findOrFail($id);
 
         $leave->update([
             'status' => $request->status,

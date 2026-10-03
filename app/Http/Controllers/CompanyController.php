@@ -106,7 +106,7 @@ public function manageCompany($id)
     $user = Auth::user(); // 🟢 ডাবল কোলন এবং টাইপ হিন্টিং ব্যবহার করা হলো
 
     // ১. চেক করা হচ্ছে ইউজার সুপার অ্যাডমিন কি না
-    if ($user->hasRole('super_admin')) {
+    if ($user->hasRole('Super Admin')) {
         
         // ২. 🟢 এখানেই সেশনে active_company_id সেট হয়ে যাচ্ছে!
         session(['active_company_id' => $id]);

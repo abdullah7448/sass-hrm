@@ -12,9 +12,10 @@ use Illuminate\Support\Facades\Auth;
 
 class CandidateController extends Controller
 {
-public function index()
+    public function index()
     {
-        $companyId = Auth::user()->company_id;
+        // 🟢 Base Controller থেকে ডাইনামিক কোম্পানি আইডি নেওয়া হলো
+        $companyId = $this->getActiveCompanyId();
 
         $candidates = \App\Models\Candidate::with('assessment')
             ->where('company_id', $companyId)->latest()->get();
@@ -32,6 +33,12 @@ public function index()
 
     public function approve(Candidate $candidate)
     {
+        // 🟢 সিকিউরিটি চেক: অন্য কোম্পানির ক্যান্ডিডেটকে যেন অ্যাপ্রুভ করতে না পারে
+        $companyId = $this->getActiveCompanyId();
+        if ($candidate->company_id !== $companyId) {
+            abort(403);
+        }
+
         // ১. ক্যান্ডিডেটের স্ট্যাটাস আপডেট করা
         $candidate->update(['status' => 'Approved']);
 
@@ -40,7 +47,7 @@ public function index()
             ['email' => $candidate->email], // ইমেইল চেক করবে আগে থেকে আছে কিনা
             [
                 'name' => $candidate->name,
-                'company_id' => $candidate->company_id,
+                'company_id' => $companyId, // 🟢 নিশ্চিত করা হলো যে বর্তমান কোম্পানিতেই অ্যাড হচ্ছে
                 'phone' => $candidate->phone,
                 'password' => Hash::make('password123'), // ডিফল্ট পাসওয়ার্ড
                 'is_active' => true,
@@ -58,6 +65,12 @@ public function index()
     // ==========================================
     public function updateStatus(Request $request, Candidate $candidate)
     {
+        // 🟢 সিকিউরিটি চেক
+        $companyId = $this->getActiveCompanyId();
+        if ($candidate->company_id !== $companyId) {
+            abort(403);
+        }
+
         $request->validate([
             'status' => 'required|string'
         ]);

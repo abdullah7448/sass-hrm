@@ -240,13 +240,51 @@ const isCheckedIn = computed(() => todayAttendance.value && !todayAttendance.val
 const hasCheckedOut = computed(() => todayAttendance.value && todayAttendance.value.check_out);
 
 // API Calls
+// const handleCheckIn = () => {
+//     const now = new Date();
+//     const currentHour = now.getHours();
+//     const currentMinute = now.getMinutes();
+    
+//     const isLateTime = (currentHour > 9) || (currentHour === 9 && currentMinute > 10);
+
+//     if (isLateTime && !lateReasonText.value) {
+//         showLateModal.value = true;
+//         return;
+//     }
+
+//     router.post(route('attendance.check-in'), {
+//         late_reason: lateReasonText.value
+//     }, {
+//         preserveScroll: true,
+//         onSuccess: () => {
+//             showLateModal.value = false;
+//             lateReasonText.value = '';
+//             alert('Checked In Successfully!');
+//         }
+//     });
+// };
+
 const handleCheckIn = () => {
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     
-    const isLateTime = (currentHour > 9) || (currentHour === 9 && currentMinute > 10);
+    // ইউজারের শিফট বের করে আনা (আপনার Vue ফাইলের props অনুযায়ী এটি একটু ভ্যারি করতে পারে)
+    // যদি usePage() ইমপোর্ট করা থাকে: const user = usePage().props.auth.user;
+    const user = typeof page !== 'undefined' ? page.props.auth.user : null;
+    let isLateTime = false;
 
+    console.log('User Shift Type:', user?.shift_type);
+
+    if (user && user.shift_type === 'evening') {
+        // ইভিনিং শিফট: দুপুর ২:০০ টা (14:00), ১০ মিনিট গ্রেস পিরিয়ড (১৪:১০)
+        isLateTime = (currentHour > 14) || (currentHour === 14 && currentMinute > 10);
+    } else {
+        // মর্নিং শিফট: সকাল ৯:০০ টা, ১০ মিনিট গ্রেস পিরিয়ড (৯:১০)
+        isLateTime = (currentHour > 9) || (currentHour === 9 && currentMinute > 10);
+    }
+
+    // যদি লেট হয় এবং কোনো রিজন লেখা না থাকে, তবেই মডাল ওপেন হবে
     if (isLateTime && !lateReasonText.value) {
         showLateModal.value = true;
         return;

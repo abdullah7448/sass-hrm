@@ -31,6 +31,11 @@ class HandleInertiaRequests extends Middleware
     
 public function share(Request $request): array
 {
+    $activeCompany = null;
+    if (session()->has('active_company_id')) {
+        $activeCompany = \App\Models\Company::find(session('active_company_id'));
+    }
+
     return [
         ...parent::share($request),
         'auth' => [
@@ -39,11 +44,15 @@ public function share(Request $request): array
                 'name' => $request->user()->name,
                 'email' => $request->user()->email,
                 'company_id' => $request->user()->company_id,
-                // Spatie theke role pathanor exact rules
+                // 🟢 এই লাইনটি যুক্ত করতে হবে
+                'shift_type' => $request->user()->shift_type, 
                 'roles' => $request->user()->getRoleNames(), 
             ] : null,
         ],
-        'active_company_id' => session('active_company_id'),
+        'active_company' => $activeCompany ? [
+            'id' => $activeCompany->id,
+            'name' => $activeCompany->name,
+        ] : null,
     ];
 }
 }

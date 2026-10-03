@@ -15,6 +15,21 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
+            <!-- 🟢 সুপার অ্যাডমিন ব্যানার: শুধু তখনই দেখাবে যখন সে কোনো কোম্পানি ম্যানেজ করছে -->
+            <div v-if="$page.props.active_company && (hasRole('super_admin') || hasRole('Super Admin'))" class="mx-4 mt-6 p-4 bg-indigo-900 rounded-xl border border-indigo-700 shadow-inner">
+                <div class="text-[10px] uppercase tracking-wider text-indigo-300 font-bold mb-1">
+                    Currently Managing
+                </div>
+                <div class="text-white font-bold text-sm truncate mb-3">
+                    {{ $page.props.active_company.name }}
+                </div>
+                
+                <!-- Exit Button -->
+                <Link :href="route('companies.exit')" method="post" as="button" class="w-full bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-2 px-3 rounded shadow transition-colors text-center flex justify-center items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Exit Company
+                </Link>
+            </div>
             
             <!-- Navigation Links -->
             <div class="overflow-y-auto overflow-x-hidden flex-grow custom-scrollbar">
@@ -65,7 +80,7 @@
                    <!-- =======================================
                         ২. Company Admin Menu
                     ======================================== -->
-                    <template v-if="hasRole('Company Admin')">
+                   <template v-if="hasRole('Company Admin') || ((hasRole('super_admin') || hasRole('Super Admin')) && $page.props.active_company)">
                         <li class="px-6 mb-2 mt-6"><div class="text-xs font-semibold text-gray-500 uppercase">Recruitment</div></li>
                         
                         <!-- Applications Link -->

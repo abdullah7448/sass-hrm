@@ -5,13 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class AttendanceController extends Controller
 {
-    // ১. Check In Method
-   public function checkIn(Request $request)
+    // ১. Check In Method (Employee)
+    public function checkIn(Request $request)
     {
-        $user = auth()->user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user(); 
+        
         $today = \Carbon\Carbon::today()->toDateString();
         $currentTime = \Carbon\Carbon::now();
 
@@ -24,41 +28,40 @@ class AttendanceController extends Controller
             return back()->with('error', 'You have already checked in today.');
         }
 
-        // শিফট টাইম নির্ধারণ (Morning: 9:00 AM, Evening: 2:00 PM)
         $shiftStartTime = $user->shift_type === 'evening' 
             ? \Carbon\Carbon::today()->setHour(14)->setMinute(0) 
             : \Carbon\Carbon::today()->setHour(9)->setMinute(0);
 
-        // ১০ মিনিট গ্রেস পিরিয়ড (যেমন: সকাল ৯:১০ পর্যন্ত রাইট টাইম)
+        // ১০ মিনিট গ্রেস পিরিয়ড
         $graceTime = (clone $shiftStartTime)->addMinutes(10);
 
         $status = 'present';
         $lateReason = $request->input('late_reason');
 
-        // যদি ১০ মিনিট পার হয়ে যায়
         if ($currentTime->greaterThan($graceTime)) {
             $status = 'late';
-            // যদি লেট হয় কিন্তু রিজন না দিয়ে থাকে, তবে ফ্রন্টএন্ড থেকে রিজন চাইতে হবে
         }
 
         Attendance::create([
-            'company_id' => $user->company_id,
+            'company_id' => $this->getActiveCompanyId(), // 🟢 ডাইনামিক কোম্পানি আইডি
             'user_id' => $user->id,
             'date' => $today,
             'check_in' => $currentTime->toTimeString(),
             'status' => $status,
             'ip_address' => $request->ip(),
             'late_reason' => $lateReason,
-            'is_late_approved' => false, // অ্যাডমিন চাইলে পরে এটি অ্যাপ্রুভ করতে পারবে
+            'is_late_approved' => false,
         ]);
 
         return back()->with('success', 'Checked In Successfully!');
     }
 
-    // ২. Check Out Method
-   public function checkOut(Request $request)
+    // ২. Check Out Method (Employee)
+    public function checkOut(Request $request)
     {
-        $user = auth()->user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user(); 
+        
         $today = \Carbon\Carbon::today()->toDateString();
         $currentTime = \Carbon\Carbon::now();
 
@@ -71,7 +74,6 @@ class AttendanceController extends Controller
             return back()->with('error', 'No active check-in found for today.');
         }
 
-        // চেক-ইন টাইম থেকে বর্তমান সময় পর্যন্ত কত মিনিট কাজ হলো তার হিসাব
         $checkInTime = \Carbon\Carbon::parse($attendance->date . ' ' . $attendance->check_in);
         $workingMinutes = $checkInTime->diffInMinutes($currentTime);
 
@@ -83,12 +85,12 @@ class AttendanceController extends Controller
         return back()->with('success', 'Checked Out Successfully!');
     }
 
-    // My Attendance Page (Dynamic Filter & Overview)
+    // ৩. My Attendance Page (Employee)
     public function myAttendance(Request $request)
     {
-        $user = auth()->user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user(); 
         
-        // ফ্রন্টএন্ড থেকে আসা YYYY-MM ফরম্যাট রিসিভ করা, না থাকলে বর্তমান মাস নেওয়া
         $filterDate = $request->input('month_year', Carbon::now()->format('Y-m'));
         
         $parsedDate = Carbon::parse($filterDate);
@@ -101,93 +103,37 @@ class AttendanceController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
-        // Overview Summary Calculation
         $summary = [
-            'month_name' => $parsedDate->format('F Y'), // e.g., October 2026
+            'month_name' => $parsedDate->format('F Y'),
             'present' => $attendances->where('status', 'present')->count(),
             'late' => $attendances->where('status', 'late')->count(),
             'absent' => $attendances->where('status', 'absent')->count(),
-            'leave' => 0, // লিভ সিস্টেম হলে এখানে ডাইনামিক ডেটা আসবে
+            'leave' => 0, 
             'total_days' => $attendances->count(),
         ];
 
         return inertia('Employee/MyAttendance', [
             'attendances' => $attendances,
             'summary' => $summary,
-            'filterDate' => $filterDate, // Vue-তে বাইন্ড করার জন্য
+            'filterDate' => $filterDate,
         ]);
     }
 
-    // Company Admin: Today's Attendance List
-    // public function companyTodayAttendance(Request $request)
-    // {
-    //     $admin = auth()->user();
-    //     $today = \Carbon\Carbon::today()->toDateString();
-
-    //     // অ্যাডমিনের কোম্পানির সকল এমপ্লয়িকে খুঁজে বের করা (অ্যাডমিন নিজে বাদে)
-    //     $employees = \App\Models\User::where('company_id', $admin->company_id)
-    //                      ->where('id', '!=', $admin->id) 
-    //                      ->get();
-
-    //     // আজকের অ্যাটেনডেন্সগুলো আনা
-    //     $attendances = \App\Models\Attendance::where('company_id', $admin->company_id)
-    //                              ->where('date', $today)
-    //                              ->get()
-    //                              ->keyBy('user_id');
-
-    //     $summary = [
-    //         'total' => $employees->count(),
-    //         'present' => 0,
-    //         'late' => 0,
-    //         'absent' => 0,
-    //     ];
-
-    //     // এমপ্লয়িদের সাথে অ্যাটেনডেন্স মার্জ (Merge) করা
-    //     $attendanceList = $employees->map(function($emp) use ($attendances, &$summary) {
-    //         $att = $attendances->get($emp->id);
-            
-    //         if ($att) {
-    //             if ($att->status === 'present') $summary['present']++;
-    //             elseif ($att->status === 'late') $summary['late']++;
-                
-    //             return [
-    //                 'id' => $emp->id,
-    //                 'name' => $emp->name,
-    //                 'email' => $emp->email,
-    //                 'status' => $att->status,
-    //                 'check_in' => $att->check_in,
-    //                 'check_out' => $att->check_out,
-    //             ];
-    //         } else {
-    //             $summary['absent']++;
-    //             return [
-    //                 'id' => $emp->id,
-    //                 'name' => $emp->name,
-    //                 'email' => $emp->email,
-    //                 'status' => 'absent',
-    //                 'check_in' => null,
-    //                 'check_out' => null,
-    //             ];
-    //         }
-    //     });
-
-    //     return inertia('Admin/Attendance/Today', [
-    //         'attendanceList' => $attendanceList,
-    //         'summary' => $summary,
-    //         'todayDate' => \Carbon\Carbon::today()->format('F j, Y') // Example: October 2, 2026
-    //     ]);
-    // }
-
+    // ৪. Company Admin / Super Admin: Today's Attendance List
     public function companyTodayAttendance(Request $request)
     {
-        $admin = auth()->user();
+        $admin = Auth::user(); 
+        $companyId = $this->getActiveCompanyId(); // 🟢 ডাইনামিক কোম্পানি আইডি
+        
         $today = \Carbon\Carbon::today()->toDateString();
 
-        $employees = \App\Models\User::where('company_id', $admin->company_id)
+        // 🟢 শুধু নির্দিষ্ট কোম্পানির এমপ্লয়ি টানা হচ্ছে
+        $employees = \App\Models\User::where('company_id', $companyId)
                          ->where('id', '!=', $admin->id) 
                          ->get();
 
-        $attendances = \App\Models\Attendance::where('company_id', $admin->company_id)
+        // 🟢 শুধু নির্দিষ্ট কোম্পানির অ্যাটেনডেন্স টানা হচ্ছে
+        $attendances = \App\Models\Attendance::where('company_id', $companyId)
                                  ->where('date', $today)
                                  ->get()
                                  ->keyBy('user_id');
@@ -208,15 +154,15 @@ class AttendanceController extends Controller
                 
                 return [
                     'id' => $emp->id,
-                    'attendance_id' => $att->id, // 🟢 খুব জরুরি (Approve করার জন্য)
+                    'attendance_id' => $att->id,
                     'name' => $emp->name,
                     'email' => $emp->email,
                     'status' => $att->status,
                     'check_in' => $att->check_in,
                     'check_out' => $att->check_out,
-                    'ip_address' => $att->ip_address,       // 🟢 IP Address
-                    'late_reason' => $att->late_reason,     // 🟢 Late Reason
-                    'is_late_approved' => $att->is_late_approved, // 🟢 Approval Status
+                    'ip_address' => $att->ip_address,
+                    'late_reason' => $att->late_reason,
+                    'is_late_approved' => $att->is_late_approved,
                 ];
             } else {
                 $summary['absent']++;
@@ -242,13 +188,15 @@ class AttendanceController extends Controller
         ]);
     }
 
-    // Admin: Approve Late Entry
+    // ৫. Admin: Approve Late Entry
     public function approveLate($id)
     {
+        $companyId = $this->getActiveCompanyId(); // 🟢 ডাইনামিক কোম্পানি আইডি
+        
         $attendance = Attendance::findOrFail($id);
         
-        // কোম্পানি ম্যাচ করে কিনা সিকিউরিটি চেক
-        if ($attendance->company_id !== auth()->user()->company_id) {
+        // 🟢 কোম্পানি ম্যাচ করে কিনা সিকিউরিটি চেক
+        if ($attendance->company_id !== $companyId) {
             abort(403);
         }
 

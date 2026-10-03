@@ -5,46 +5,39 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth; // 🟢 Auth ফ্যাসাড ইমপোর্ট করা হলো
+use Illuminate\Support\Facades\Auth;
 
 class EmployeeController extends Controller
 {
     // ১. Employee List (অ্যাডমিন ভিউ)
- public function index(Request $request)
-{
-    /** @var \App\Models\User $user */
-    $user = Auth::user(); // 🟢 ডাবল কোলন ব্যবহার করা হলো
+    public function index(Request $request)
+    {
+        // 🟢 সরাসরি Base Controller থেকে আইডি নিচ্ছে
+        $companyId = $this->getActiveCompanyId(); 
 
-    // ডাইনামিক কোম্পানি আইডি পিক করা (সুপার অ্যাডমিন ইমপারসনেশন সহ)
-    $isSuperAdmin = $user->hasRole('super_admin');
-    $companyId = ($isSuperAdmin && session()->has('active_company_id')) 
-                    ? session('active_company_id') 
-                    : $user->company_id;
+        $query = User::where('company_id', $companyId);
 
-    $query = User::where('company_id', $companyId);
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
 
-    if ($request->has('search') && $request->search != '') {
-        $search = $request->search;
-        $query->where(function($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('email', 'like', "%{$search}%")
-              ->orWhere('phone', 'like', "%{$search}%");
-        });
+        $employees = $query->latest()->get();
+
+        return Inertia::render('Admin/Employees/Index', [
+            'employees' => $employees,
+            'filters' => $request->only(['search'])
+        ]);
     }
 
-    $employees = $query->latest()->get();
-
-    return Inertia::render('Admin/Employees/Index', [
-        'employees' => $employees,
-        'filters' => $request->only(['search'])
-    ]);
-}
-
-public function update(Request $request, $id)
+    // ২. Update Employee
+    public function update(Request $request, $id)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user(); // 🟢 ডাবল কোলন ব্যবহার করা হলো
-        $companyId = $user->company_id;
+        $companyId = $this->getActiveCompanyId();
         
         $employee = \App\Models\User::where('company_id', $companyId)->findOrFail($id);
 
@@ -54,8 +47,6 @@ public function update(Request $request, $id)
             'basic_salary' => 'nullable|numeric|min:0',
             'shift_type' => 'required|in:morning,evening',
         ]);
-
-        
 
         $employee->update([
             'name' => $request->name,
@@ -67,69 +58,21 @@ public function update(Request $request, $id)
         return back()->with('success', 'Employee profile and salary updated successfully!');
     }
 
-    // ২. Terminate / Fire Employee
+    // ৩. Terminate / Fire Employee
     public function terminate($id)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user(); // 🟢 ডাবল কোলন ব্যবহার করা হলো
-        $companyId = $user->company_id;
+        $companyId = $this->getActiveCompanyId();
 
-        // role কলাম রিমুভ করা হলো
-        $employee = User::where('company_id', $companyId)
-                        ->findOrFail($id);
-
-        // Terminate মানে হলো ইউজারকে রিমুভ করে দেওয়া, যাতে সে অন্য কোম্পানিতে যেতে পারে
+        $employee = User::where('company_id', $companyId)->findOrFail($id);
         $employee->delete();
 
         return redirect()->route('employees.index')->with('success', 'Employee terminated successfully. Email is now released.');
     }
 
-   // ৩. Employee Profile View (Digital File)
-    // public function show(\Illuminate\Http\Request $request, $id)
-    // {
-    //     /** @var \App\Models\User $user */
-    //     $user = Auth::user(); // 🟢 এখানেও কমেন্টের ভেতরে আপডেট করে রাখলাম
-    //     $companyId = $user->company_id;
-
-    //     // এমপ্লয়ির বেসিক ডাটা নিয়ে আসা
-    //     $employee = \App\Models\User::where('company_id', $companyId)->findOrFail($id);
-
-    //     // ক্যান্ডিডেট টেবিল থেকে তার বাকি ইনফরমেশন নিয়ে আসা
-    //     $candidateData = \App\Models\Candidate::where('email', $employee->email)
-    //                                          ->where('company_id', $companyId)
-    //                                          ->first();
-
-    //     // 🟢 অ্যাটেনডেন্স ফিল্টারিং লজিক
-    //     $filterDate = $request->input('month_year', \Carbon\Carbon::now()->format('Y-m'));
-    //     $parsedDate = \Carbon\Carbon::parse($filterDate);
-
-    //     $attendances = \App\Models\Attendance::where('user_id', $employee->id)
-    //         ->whereMonth('date', $parsedDate->month)
-    //         ->whereYear('date', $parsedDate->year)
-    //         ->orderBy('date', 'desc')
-    //         ->get();
-
-    //     $attSummary = [
-    //         'month_name' => $parsedDate->format('F Y'),
-    //         'present' => $attendances->where('status', 'present')->count(),
-    //         'late' => $attendances->where('status', 'late')->count(),
-    //         'absent' => $attendances->where('status', 'absent')->count(),
-    //     ];
-
-    //     return inertia('Admin/Employees/Show', [
-    //         'employee' => $employee,
-    //         'candidateData' => $candidateData,
-    //         'attendances' => $attendances,
-    //         'attSummary' => $attSummary,
-    //         'filterDate' => $filterDate,
-    //     ]);
-    // }
-    
+    // ৪. Employee Profile View (Digital File)
     public function show(\Illuminate\Http\Request $request, $id)
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user(); // 🟢 ডাবল কোলন ব্যবহার করা হলো
-        $companyId = $user->company_id;
+        $companyId = $this->getActiveCompanyId();
 
         $employee = \App\Models\User::where('company_id', $companyId)->findOrFail($id);
 
@@ -137,7 +80,6 @@ public function update(Request $request, $id)
                                               ->where('company_id', $companyId)
                                               ->first();
 
-        // 🟢 মাস ও বছর ফিল্টার (ডিফল্ট বর্তমান মাস)
         $filterDate = $request->input('month_year', \Carbon\Carbon::now()->format('Y-m'));
         $parsedDate = \Carbon\Carbon::parse($filterDate);
 
@@ -154,7 +96,6 @@ public function update(Request $request, $id)
             'absent' => $attendances->where('status', 'absent')->count(),
         ];
 
-        // 🟢 ডাইনামিক পে-স্লিপ ক্যালকুলেশন
         $totalWorkingDays = $attSummary['present'] + $attSummary['late'];
         $unapprovedLateCount = $attendances->filter(function($att) {
             return $att->status === 'late' && !$att->is_late_approved;
@@ -163,17 +104,10 @@ public function update(Request $request, $id)
         $basicSalary = $employee->basic_salary ?? 0;
         $perDaySalary = $basicSalary > 0 ? ($basicSalary / 30) : 0;
         
-        // উপস্থিতির ওপর ভিত্তি করে অর্জিত বেসিক
         $earnedBasic = $totalWorkingDays * $perDaySalary;
-
-        // লেট পেনাল্টি ডিডাকশন (৩ দিন আন-অ্যাপ্রুভড লেট = ১ দিন কাটা)
         $deductionDays = floor($unapprovedLateCount / 3); 
         $lateDeduction = $deductionDays * $perDaySalary;
-
-        // অ্যাটেনডেন্স বোনাস (কমপক্ষে ২০ দিন উপস্থিত থাকলে ২,০০০ টাকা)
         $attendanceBonus = ($totalWorkingDays >= 20) ? 2000 : 0; 
-
-        // নিট পে
         $netSalary = ($earnedBasic + $attendanceBonus) - $lateDeduction;
 
         $payroll = [
@@ -194,8 +128,7 @@ public function update(Request $request, $id)
             'attendances' => $attendances,
             'attSummary' => $attSummary,
             'filterDate' => $filterDate,
-            'payroll' => $payroll, // 🟢 পে-স্লিপ ডেটা পাঠানো হলো
+            'payroll' => $payroll, 
         ]);
     }
-   
 }

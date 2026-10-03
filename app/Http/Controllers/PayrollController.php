@@ -7,16 +7,17 @@ use App\Models\User;
 use App\Models\Attendance;
 use Carbon\Carbon;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth; // 🟢 Auth ফ্যাসাড ইমপোর্ট করা হলো
+use Illuminate\Support\Facades\Auth;
 
 class PayrollController extends Controller
 {
     public function generatePaySlip(Request $request, $employeeId)
     {
-        /** @var \App\Models\User $admin */
-        $admin = Auth::user(); // 🟢 ডাবল কোলন এবং টাইপ হিন্টিং ব্যবহার করা হলো
+        // 🟢 Base Controller থেকে ডাইনামিক কোম্পানি আইডি নেওয়া হলো
+        $companyId = $this->getActiveCompanyId();
         
-        $employee = User::where('company_id', $admin->company_id)->findOrFail($employeeId);
+        // 🟢 সিকিউরিটি চেক: ওই কোম্পানির এমপ্লয়িকেই শুধু পে-স্লিপ দেওয়া যাবে
+        $employee = User::where('company_id', $companyId)->findOrFail($employeeId);
 
         $filterMonth = $request->input('month', Carbon::now()->month);
         $filterYear = $request->input('year', Carbon::now()->year);
@@ -48,7 +49,7 @@ class PayrollController extends Controller
         $deductionDays = floor($unapprovedLateCount / 3); 
         $lateDeduction = $deductionDays * $perDaySalary;
 
-        // ৫. অ্যাটেনডেন্স বোনাস (পুরো মাসে ফুল প্রেজেন্ট বা একটি নির্দিষ্ট লেভেলের বেশি থাকলে দিতে পারেন, আপাতত ডাইনামিক রাখছি)
+        // ৫. অ্যাটেনডেন্স বোনাস
         // যদি সে অন্তত ২০ দিন আসে তবেই বোনাস পাবে, না হলে জিরো
         $attendanceBonus = ($totalWorkingDays >= 20) ? 2000 : 0; 
 
